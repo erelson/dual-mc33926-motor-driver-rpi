@@ -1,3 +1,16 @@
+h1. Modified Pololu library
+
+This library is modified from the original, which is intended for a dual motor driver carrier pi-hat
+to work with a single or double motor driver carrier boards that are not in hat configuration.
+
+The key modification is to use an additional input per motor driver chip in lieu of a pair of
+74LVC1G97 gates per driver, used on the original pi-hat.
+
+- Target board (single): https://www.pololu.com/product/1212
+- Target board (dual): https://www.pololu.com/product/1213
+- Original board: https://www.pololu.com/product/2755
+- Original library: https://github.com/pololu/dual-mc33926-motor-driver-rpi
+
 h1. Python library for the Pololu Dual MC33926 Motor Driver for Raspberry Pi
 
 Version: 2.0.0
