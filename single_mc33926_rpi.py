@@ -1,4 +1,4 @@
-import wiringpi
+import RPi.GPIO as gpio
 
 # This module targets a mc33926 driver, connected to the standard Raspberry Pi
 # header pin layout
@@ -14,16 +14,7 @@ def io_init():
     if io_initialized:
         return
 
-    wiringpi.wiringPiSetupGpio()
-    wiringpi.pinMode(12, wiringpi.GPIO.PWM_OUTPUT)
-
-    wiringpi.pwmSetMode(wiringpi.GPIO.PWM_MODE_MS)
-    wiringpi.pwmSetRange(MAX_SPEED)
-    wiringpi.pwmSetClock(2)
-
-    wiringpi.pinMode(22, wiringpi.GPIO.OUTPUT)
-    wiringpi.pinMode(24, wiringpi.GPIO.OUTPUT)
-    wiringpi.pinMode(26, wiringpi.GPIO.OUTPUT)
+    gpio.setmode(gpio.BOARD)
 
     io_initialized = True
 
@@ -31,18 +22,26 @@ class Motor(object):
     MAX_SPEED = _max_speed
 
     def __init__(self, pwm_pin, dir1_pin, dir2_pin, en_pin):
+        io_init()
         self.pwm_pin = pwm_pin
         self.dir1_pin = dir1_pin
         self.dir2_pin = dir2_pin
         self.en_pin = en_pin
 
+        gpio.setup(self.pwm_pin, gpio.OUTPUT, initial=0)
+        gpio.setup(self.dir1_pin, gpio.OUTPUT, initial=0)
+        gpio.setup(self.dir2_pin, gpio.OUTPUT, initial=0)
+        gpio.setup(self.en_pin, gpio.OUTPUT, initial=0)
+
+        self.pwm = gpio.PWM(self.pwm_pin, 1000)
+
     def enable(self):
-        io_init()
-        wiringpi.digitalWrite(self.en_pin, 1)
+        gpio.output(self.en_pin, 1)
+        self.pwm.start(0) # 0% duty cycle
 
     def disable(self):
-        io_init()
-        wiringpi.digitalWrite(self.en_pin, 0)
+        gpio.output(self.en_pin, 0)
+        self.pwm.stop()
 
     def setSpeed(self, speed):
         if speed < 0:
@@ -56,10 +55,9 @@ class Motor(object):
         if speed > MAX_SPEED:
             speed = MAX_SPEED
 
-        io_init()
-        wiringpi.digitalWrite(self.dir1_pin, dir_value1)
-        wiringpi.digitalWrite(self.dir2_pin, dir_value2)
-        wiringpi.pwmWrite(self.pwm_pin, speed)
+        gpio.output(self.dir1_pin, dir_value1)
+        gpio.output(self.dir2_pin, dir_value2)
+        self.pwm.ChangeDutyCycle(100. * abs(speed) / MAX_SPEED)
 
 class Motors(object):
     MAX_SPEED = _max_speed
